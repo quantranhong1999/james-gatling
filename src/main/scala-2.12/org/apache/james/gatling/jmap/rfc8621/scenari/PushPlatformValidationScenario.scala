@@ -87,7 +87,6 @@ class PushPlatformValidationScenario(minMessagesInMailbox: Int,
           .asInstanceOf[ChainBuilder]
           .pause(minWaitDelay, maxWaitDelay))
       }
-      .exec(websocketClose)
   }
 }
 
