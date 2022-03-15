@@ -23,7 +23,6 @@ class WebsocketSimpleScenario {
             exec(createMailbox)
               .pause(2 second)
         }))
-      .exec(websocketClose)
 
   def createMailbox: ChainBuilder =
     exec((session: Session) => session.set("createdId", MailboxId.generate().id))
