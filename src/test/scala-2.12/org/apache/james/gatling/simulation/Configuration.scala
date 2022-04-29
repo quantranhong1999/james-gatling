@@ -7,7 +7,7 @@ import scala.util.Properties
 
 object Configuration {
 
-  val ServerHostName = Properties.envOrElse("TARGET_HOSTNAME", "james-admin.upn.integration-open-paas.org")
+  val ServerHostName = Properties.envOrElse("TARGET_HOSTNAME", "localhost")
   val JmapServerHostName = "jmap.upn.integration-open-paas.org"
   val ImapServerHostName = "imap.upn.integration-open-paas.org"
   val WebadminServerHostName = Properties.envOrElse("WEBADMIN_SERVER_HOSTNAME", ServerHostName)
@@ -30,7 +30,7 @@ object Configuration {
 
   val ScenarioDuration = DURATION_PROPERTY.getOrElse(12 minutes)
   val InjectionDuration = DURATION_PROPERTY.getOrElse(8 minutes)
-  val UserCount = 1000
+  val UserCount = 20000
   val RandomlySentMails = 10
   val NumberOfMailboxes = 10
   val NumberOfMessages = 20
