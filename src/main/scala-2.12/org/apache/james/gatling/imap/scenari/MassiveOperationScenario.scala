@@ -19,12 +19,16 @@ class MassiveOperationScenario {
   private val mailboxAName = "MailboxA"
   private val mailboxBName = "MailboxB"
   private val mailboxCName = "MailboxC"
+  private val mailboxXName = "MailboxX"
+  private val mailboxYName = "MailboxY"
   private val mailboxDName = "MailboxD"
   private val mailboxDNewName = "Dbis"
 
-  private val createMailboxA_B_C = exec(imap("createFolder").createFolder(mailboxAName).check(ok))
+  private val createMailboxA_B_C_X_Y = exec(imap("createFolder").createFolder(mailboxAName).check(ok))
     .exec(imap("createFolder").createFolder(mailboxBName).check(ok))
     .exec(imap("createFolder").createFolder(mailboxCName).check(ok))
+    .exec(imap("createFolder").createFolder(mailboxXName).check(ok))
+    .exec(imap("createFolder").createFolder(mailboxYName).check(ok))
   private val populateMailboxA = repeat(numberOfMailInInbox)(pause(gracePeriod)
     .exec(imap("append").append(mailboxAName, Option.empty[Seq[String]], Option.empty[Calendar],
       """From: expeditor@example.com
@@ -36,12 +40,14 @@ class MassiveOperationScenario {
         |0123456789""".stripMargin).check(ok)))
   private val setAllMessagesInMailboxASeenFlag = imap("storeAll").store(MessageRanges(From(1L)), StoreFlags.add(Silent.Enable(), "\\Seen")).check(ok)
   private val copyAllMessagesToMailboxB = imap("copy").copyMessage(MessageRanges(From(1L)), mailboxBName).check(ok)
-  private val moveAllMessagesToMailboxC = imap("move").moveMessage(MessageRanges(From(1L)), mailboxCName).check(ok)
+  private def moveAllMessagesToMailbox(mailbox: String) = imap("move").moveMessage(MessageRanges(From(1L)), mailbox).check(ok)
   private val setAllMessagesInMailboxBDeletedFlagAndExpunge = exec(imap("storeAll").store(MessageRanges(From(1L)), StoreFlags.add(Silent.Enable(), "\\Deleted")).check(ok))
     .exec(imap("expunge").expunge().check(ok))
-  private val deleteMailboxA_B_C = exec(imap("deleteFolder").deleteFolder(mailboxAName).check(ok))
+  private val deleteMailboxA_B_C_X_Y = exec(imap("deleteFolder").deleteFolder(mailboxAName).check(ok))
     .exec(imap("deleteFolder").deleteFolder(mailboxBName).check(ok))
     .exec(imap("deleteFolder").deleteFolder(mailboxCName).check(ok))
+    .exec(imap("deleteFolder").deleteFolder(mailboxXName).check(ok))
+    .exec(imap("deleteFolder").deleteFolder(mailboxYName).check(ok))
   private val createMailboxDWith1000SubMailboxes = exec(imap("createFolder").createFolder(mailboxDName).check(ok))
     .exec(repeat(numberOfSubMailboxes, "loopId")(pause(gracePeriod).exec(exec(imap("createFolder").createFolder(s"$mailboxDName.$${loopId}").check(ok)))))
   private val renameMailboxD = exec(imap("renameFolder").renameFolder(mailboxDName, mailboxDNewName).check(ok))
@@ -55,20 +61,24 @@ class MassiveOperationScenario {
       .pause(1 second)
       .exec(imap("Connect").connect()).exitHereIfFailed
       .exec(imap("login").login("${username}", "${password}").check(ok))
-      .exec(createMailboxA_B_C)
+      .exec(createMailboxA_B_C_X_Y)
       .exec(imap("select").select(mailboxAName).check(ok))
       .exec(populateMailboxA)
       .pause(2 second)
       .exec(setAllMessagesInMailboxASeenFlag)
       .pause(2 second)
-      .exec(copyAllMessagesToMailboxB)
+      .exec(repeat(3, "loopId") (pause(2 seconds).exec(copyAllMessagesToMailboxB)))
       .pause(2 second)
-      .exec(moveAllMessagesToMailboxC)
+      .exec(moveAllMessagesToMailbox(mailboxCName))
+      .pause(2 seconds)
+      .exec(imap("select").select(mailboxCName).check(ok)).exec(moveAllMessagesToMailbox(mailboxXName))
+      .pause(2 seconds)
+      .exec(imap("select").select(mailboxXName).check(ok)).exec(moveAllMessagesToMailbox(mailboxYName))
       .pause(2 seconds)
       .exec(imap("select").select(mailboxBName).check(ok))
       .exec(setAllMessagesInMailboxBDeletedFlagAndExpunge)
       .pause(2 seconds)
-      .exec(deleteMailboxA_B_C)
+      .exec(deleteMailboxA_B_C_X_Y)
       .exec(createMailboxDWith1000SubMailboxes)
       .pause(1 seconds)
       .exec(renameMailboxD)
