@@ -27,7 +27,7 @@ class MassiveOperationScenario {
   private val mailboxDName = mailboxName + "D"
   private val mailboxDNewName = mailboxName+ "Dbis"
 
-  private val createMailboxA_B_C_X_Y = exec(imap("createFolder").createFolder(mailboxAName).check(ok))
+  private val createMailboxA_B_C_X_Y_Z_T = exec(imap("createFolder").createFolder(mailboxAName).check(ok))
     .exec(imap("createFolder").createFolder(mailboxBName).check(ok))
     .exec(imap("createFolder").createFolder(mailboxCName).check(ok))
     .exec(imap("createFolder").createFolder(mailboxXName).check(ok))
@@ -50,11 +50,13 @@ class MassiveOperationScenario {
   private def moveAllMessagesToMailbox(mailbox: String) = imap("move").moveMessage(MessageRanges(From(1L)), mailbox).check(ok)
   private val setAllMessagesInMailboxBDeletedFlagAndExpunge = exec(imap("storeAll").store(MessageRanges(From(1L)), StoreFlags.add(Silent.Enable(), "\\Deleted")).check(ok))
     .exec(imap("expunge").expunge().check(ok))
-  private val deleteMailboxA_B_C_X_Y = exec(imap("deleteFolder").deleteFolder(mailboxAName).check(ok))
+  private val deleteMailboxA_B_C_X_Y_Z_T = exec(imap("deleteFolder").deleteFolder(mailboxAName).check(ok))
     .exec(imap("deleteFolder").deleteFolder(mailboxBName).check(ok))
     .exec(imap("deleteFolder").deleteFolder(mailboxCName).check(ok))
     .exec(imap("deleteFolder").deleteFolder(mailboxXName).check(ok))
     .exec(imap("deleteFolder").deleteFolder(mailboxYName).check(ok))
+    .exec(imap("deleteFolder").deleteFolder(mailboxZName).check(ok))
+    .exec(imap("deleteFolder").deleteFolder(mailboxTName).check(ok))
   private val createMailboxDWith1000SubMailboxes = exec(imap("createFolder").createFolder(mailboxDName).check(ok))
     .exec(repeat(numberOfSubMailboxes, "loopId")(pause(gracePeriod).exec(exec(imap("createFolder").createFolder(s"$mailboxDName.$${loopId}").check(ok)))))
   private val renameMailboxD = exec(imap("renameFolder").renameFolder(mailboxDName, mailboxDNewName).check(ok))
@@ -68,7 +70,7 @@ class MassiveOperationScenario {
       .pause(1 second)
       .exec(imap("Connect").connect()).exitHereIfFailed
       .exec(imap("login").login("${username}", "${password}").check(ok))
-      .exec(createMailboxA_B_C_X_Y)
+      .exec(createMailboxA_B_C_X_Y_Z_T)
       .exec(imap("select").select(mailboxAName).check(ok))
       .exec(populateMailboxA)
       .pause(2 second)
@@ -86,7 +88,7 @@ class MassiveOperationScenario {
       .exec(imap("select").select(mailboxBName).check(ok))
       .exec(setAllMessagesInMailboxBDeletedFlagAndExpunge)
       .pause(2 seconds)
-      .exec(deleteMailboxA_B_C_X_Y)
+      .exec(deleteMailboxA_B_C_X_Y_Z_T)
       .exec(createMailboxDWith1000SubMailboxes)
       .pause(1 seconds)
       .exec(renameMailboxD)
